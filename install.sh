@@ -63,7 +63,7 @@ else
     exit
 fi
 
-    read -p $'\e[32mSelect the protocol:\n\e[0m\e[36m1. \e[0mBy "Tcp" Protocol \n\e[36m2. \e[0mBy "Udp" Protocol \n\e[36m3. \e[0mBy "Grpc" Protocol \e[32m\nYour choice: \e[0m' protocol_option
+    read -p $'\e[32mSelect the protocol:\n\e[0m\e[36m1. \e[0mBy "Tcp" Protocol \n\e[36m2. \e[0mBy "Udp" Protocol \n\e[36m3. \e[0mBy "Grpc" Protocol \n\e[36m4. \e[0mBy "Proxy" Protocol \e[32m\nYour choice: \e[0m' protocol_option
 
 if [ "$protocol_option" -eq 1 ]; then
     protocol="tcp"
@@ -71,6 +71,9 @@ elif [ "$protocol_option" -eq 2 ]; then
     protocol="udp"
 elif [ "$protocol_option" -eq 3 ]; then
     protocol="grpc"
+
+elif [ "$protocol_option" -eq 4 ]; then
+    protocol="proxy"
 else
     echo $'\e[31mInvalid protocol option. Exiting...\e[0m'
     exit
@@ -167,7 +170,11 @@ EOL
         exec_start_command="ExecStart=/usr/local/bin/gost"
         for ((i = file_index * max_ports_per_file; i < (file_index + 1) * max_ports_per_file && i < port_count; i++)); do
             port="${port_array[i]}"
-            exec_start_command+=" -L=$protocol://:$port/[$destination_ip]:$port"
+            if [ "$protocol" = "proxy" ]; then
+              exec_start_command+=" -L=proxy://:$port/[$destination_ip]:443"
+            else
+              exec_start_command+=" -L=$protocol://:$port/[$destination_ip]:$port"
+            fi
         done
 
         # Append the ExecStart command to the current file
